@@ -160,6 +160,14 @@ CMD  python  /pycodes/ashu.py
   
   ```
   
+  ### creating container 
+  
+  ```
+    165  docker  run  -it  --name  ashuc3  python:ashuv1 
+  166  docker  run  -itd  --name  ashuc4  python:ashuv1 
+  167  docker  logs  ashuc4  
+  ```
+  
 
 
 
