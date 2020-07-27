@@ -123,5 +123,43 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 
  ```
 
+### kill and remove all the containers
+
+```
+ 133  docker  kill  $(docker  ps  -q)
+  134  docker  rm   $(docker  ps  -aq)
+
+```
+## Dockerfile for buidling. new. docker. images
+
+==== Dockerfile for python code 
+---
+```
+FROM  python
+#  we are using  python as a base image to itegrate our python code 
+#  and we will create a new python image
+# if default python image  will not be there then it will be pulled automatically 
+MAINTAINER  ashutoshh@linux.com
+#  optional field but info about  image designer 
+RUN  mkdir  /pycodes 
+#  creating  a directory  where will copy the python code 
+COPY  ashu.py   /pycodes/ashu.py
+#    sources     Destination 
+#  this one copy code from  Host OS  to docker  image
+CMD  python  /pycodes/ashu.py 
+#  cmd  use to define the default parent process 
+
+```
+
+### building docker. image
+---
+```
+ 154  docker  build  -t  python:ashuv1  . 
+### OR
+  157  docker  build  -t  python:ashuv1  /home/ec2-user/day1
+  
+  ```
+  
+
 
 
