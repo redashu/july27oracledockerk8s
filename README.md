@@ -71,6 +71,57 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
    34  docker  pull  busybox 
 
 ```
+### container creation 
+```
+  51  docker  run   alpine   cal  
+   55  docker  run  alpine  ping  fb.com 
+   61  docker  run  -d  --name  ashuc1  alpine  ping  google.com 
+```
+### child process 
+```
+ 84  docker  exec  ashuc1  cal  
+   85  docker  exec  ashuc1  date
+   86  docker  exec  ashuc1  ping fb.com 
+   87  docker  exec  -d  ashuc1  ping fb.com 
+  ```
+ ### basic operations 
+ 
+ ```
+  61  docker  run  -d  --name  ashuc1  alpine  ping  google.com 
+   62  docker  ps
+   63  history 
+   64  docker  ps
+   65  docker logs  ashuc1  
+   66  docker logs -f   ashuc1  
+   67  history 
+   68  docker  ps  -a
+   69  docker  logs  xenodochial_nightingale
+   70  history 
+   71  docker  ps
+   72  docker  stop   ashuc1  
+   73  docker  ps
+   74  history 
+   75  docker  ps
+   76  docker  ps   -a
+   77  docker  start    ashuc1  
+   78  docker  ps
+   79  docker  kill ashuc1  
+   80  docker  start  ashuc1  
+   81  docker  ps
+   82  docker   ps  
+   83  docker  ps
+   84  docker  exec  ashuc1  cal  
+   85  docker  exec  ashuc1  date
+   86  docker  exec  ashuc1  ping fb.com 
+   87  docker  exec  -d  ashuc1  ping fb.com 
+   88  history 
+   89  docker  ps
+   90  docker  kill   ashuc1  
+   91  docker  ps  
+   92  docker  rm   ashuc1  
+   93  docker  ps -a
+
+ ```
 
 
 
