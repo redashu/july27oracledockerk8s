@@ -43,3 +43,34 @@ usermod  -a  -G  docker  ec2-user
 > done
 ```
 
+## Docker hub 
+
+-- The image registry 
+
+## Docker Client commands :
+```
+  21  docker  version 
+   22  docker  search   java 
+   23  docker  search   mysql 
+ ```
+### check docker images on docker engine 
+
+```
+[ec2-user@ip-172-31-74-156 ~]$ docker  images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+
+```
+### pulling docker images
+
+```
+  26  docker  pull  java 
+   27  docker pull mysql
+   29  docker pull oraclelinux
+   30  docker pull oraclelinux:8.2
+   32  docker  pull  alpine  
+   34  docker  pull  busybox 
+
+```
+
+
+
