@@ -168,6 +168,37 @@ CMD  python  /pycodes/ashu.py
   167  docker  logs  ashuc4  
   ```
   
+### dockerfile for java code
+```
+FROM  java
+# using java as a  base  image
+MAINTAINER   ashutoshh@linux.com  java team 
+RUN  mkdir  /javacodes
+COPY  ashu.java   /javacodes/ashu.java
+WORKDIR   /javacodes
+#  changing  location to javacodes 
+#  workdir  is like cd commnad 
+RUN  javac  ashu.java
+#  here javac  will compile code 
+#CMD  java  myclass
+ENTRYPOINT  java  myclass
+#  default parent process we are running java code 
+#  it can't be replaced as last argument during  container creation like CMD 
 
+```
 
+### building and runnning. 
+```
+ 233  docker build  -t  java:ashuv2  .
+  234  docker run  -it --name d1  java:ashuv2  bash 
+
+```
+
+## taking image backup  and. restoring. it 
+
+```
+docker  save  -o  ashujavaimg.tar   java:ashuv2.   #. taking backup
+docker load  -i  ashujavaimg.tar    # loading into docker engine 
+
+```
 
