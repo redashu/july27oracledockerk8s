@@ -221,3 +221,43 @@ docker  run  -itd  --name  ashux1  --memory 100m  python:ashuv1
  docker  run -itd --name ashux5  --memory=120m --cpuset-cpus=0 --cpu-shares=30 python:ashuv2
  ```
  
+## Docker CE configure on TCP socket 
+
+```
+[root@ip-172-31-74-156 sysconfig]# cat  /etc/sysconfig/docker
+# The max number of open files for the daemon itself, and all
+# running containers.  The default value of 1048576 mirrors the value
+# used by the systemd service unit.
+DAEMON_MAXFILES=1048576
+
+# Additional startup options for the Docker daemon, for example:
+# OPTIONS="--ip-forward=true --iptables=true"
+# By default we limit the number of open files per container
+OPTIONS="--default-ulimit nofile=1024:4096  -H  tcp://0.0.0.0:2375" # here we updated
+
+# How many seconds the sysvinit script waits for the pidfile to appear
+# when starting the daemon.
+DAEMON_PIDFILE_TIMEOUT=10
+
+```
+
+### restarting. docker. deamon
+```
+ 27  systemctl daemon-reload 
+   28  systemctl restart  docker
+
+```
+
+### Docker client on Linux and MAC
+```
+  519  export  DOCKER_HOST="tcp://18.210.97.164:2375"
+  520  docker version 
+  521  docker  images
+```
+
+### Docker client on Windows powershell
+
+```
+ $env:DOCKER_HOST="tcp://tcp://18.210.97.164:2375"
+ ```
+ 
