@@ -202,3 +202,22 @@ docker load  -i  ashujavaimg.tar    # loading into docker engine
 
 ```
 
+## cgroups implement 
+
+```
+docker  run  -itd  --name  ashux1  --memory 100m  python:ashuv1
+```
+
+### limit cpu and ram both
+
+```
+ 287  docker  run  -d  --name ashux2  --cpus=1  alpine  ping  fb.com 
+  288  docker  run  -d  --name ashux3  --cpus=1 --memory=50m alpine  ping  fb.com 
+  
+  ```
+  
+ ### limit cpu core with percentage 
+ ```
+ docker  run -itd --name ashux5  --memory=120m --cpuset-cpus=0 --cpu-shares=30 python:ashuv2
+ ```
+ 
