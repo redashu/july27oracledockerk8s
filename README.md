@@ -261,3 +261,38 @@ DAEMON_PIDFILE_TIMEOUT=10
  $env:DOCKER_HOST="tcp://tcp://18.210.97.164:2375"
  ```
  
+## Dockerfile for Nginx based 
+```
+FROM  nginx
+#  we are using  default nginx image from docker hub 
+MAINTAINER  ashutoshh@linux.com 
+WORKDIR  /usr/share/nginx/html
+#  changing directory to documentroot of nginx web server 
+COPY project-html-website  .
+#   source from docker host   ,  destination if docker image 
+#  copy can only take data from local system and from local path where dockerfile is present
+EXPOSE  80
+#  to tell docker engine about default port of nginx web server 
+#CMD  |  ENTRYPOINT
+#  if we don't use cmd or entrypoint then it will use the parent process of  FROM image 
+```
+
+### creating .dockerignore
+
+```
+[ec2-user@ip-172-31-74-156 nginxapp]$ cat  .dockerignore 
+*.md
+.git
+LICENSE
+.dockerignore
+dockerfile
+```
+
+### building image and creating containers
+```
+ 348  docker  build -t  nginx:ashuv1 .
+  
+ 352  docker run  -d  --name  ashuc10  -p  1122:80    nginx:ashuv1 
+ ```
+ 
+
