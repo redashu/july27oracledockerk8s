@@ -367,9 +367,59 @@ RUN  yum  install   $z  -y
   436  docker run -it --rm  ashutest:v001  env
 ```
 
+## python flask app with dockerfile
 
-  
-  
+### app
+```
+ec2-user@ip-172-31-74-156 pyapp]$ cat  webapp.py 
+from flask import Flask
+app=Flask(__name__)
+
+@app.route('/')
+
+def hello():
+    return "Hello world welcome to docker with Flask !!"
+
+if __name__  ==  "__main__" :
+    app.run(host='0.0.0.0',port=5000,debug=True)
+
+```
+
+### requirements.txt 
+```
+[ec2-user@ip-172-31-74-156 pyapp]$ cat requirements.txt 
+flask
+
+```
+
+### dockerfile
+```
+[ec2-user@ip-172-31-74-156 pyapp]$ cat  Dockerfile 
+FROM  python
+maintainer  ashutoshh@linux.com
+RUN mkdir /codes
+WORKDIR  /codes
+copy .  .
+#   first  dot means all data in current location   , second dot means  destination is  /codes
+RUN  pip  install  -r  requirements.txt
+EXPOSE 5000
+CMD  python webapp.py
+
+```
+
+### .dockerignore 
+```
+[ec2-user@ip-172-31-74-156 pyapp]$ cat  .dockerignore 
+Dockerfile
+.dockerignore
+```
+
+### docker build and deploy app
+```
+docker  build  -t   flask:ashuv1   --no-cache .
+docker  run -d  --name ashux12  -p  1212:5000  flask:ashuv1  
+```
+
   
   '
   
