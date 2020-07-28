@@ -295,4 +295,85 @@ dockerfile
  352  docker run  -d  --name  ashuc10  -p  1122:80    nginx:ashuv1 
  ```
  
+### custom Dockerfile without system 
+```
+FROM  centos
+MAINTAINER  ashutoshh@linux.com
+RUN  yum  install  httpd  -y
+#  installing  httpd
+WORKDIR  /var/www/html/
+# changing documentroot  /var/www/html/ that is by httpd webserver
+COPY project-html-website  .
+EXPOSE  80 
+#  default httpd port  is  80 
+ENTRYPOINT  /usr/sbin/httpd -DFOREGROUND 
+#  above command is called  by systemctl  start  httpd  -->  /usr/sbin/httpd -DFOREGROUND
+#  incase  of  nginx  we can use   nginx  -g  "daemon off" --> systemctl  start  nginx 
 
+```
+# building and creating container 
+
+```
+ docker build  -t   httpd:ashuv1  -f  ashu.dockerfile  . 
+  389  docker  run  -d  --name ashux11 -p 1100:80  httpd:ashuv1  
+  390  docker  run  -d  --name ashux12 -p 1188:80 --memory=300m --cpuset-cpus=0 --cpu-shares=40  httpd:ashuv1  
+ ```
+ 
+ ## push image on docker hub 
+ ```
+  396  docker  tag  httpd:ashuv1    dockerashu/httpd:ashuv1july252020
+
+  398  docker  login  
+  399  docker  push   dockerashu/httpd:ashuv1july252020
+ 
+  401  docker  logout
+  
+  ```
+   
+   ## dynamic dockerfile
+   ```
+   [ec2-user@ip-172-31-74-156 httpdapp]$ cat dynamic.dockerfile 
+FROM centos
+ARG x=httpd
+#  here x is a variable and httpd  is value 
+# during  image build  time  we can replace value of x without changing into  dockerfile 
+RUN  yum  install   $x  -y
+
+```
+## image build 
+```
+ 414  docker build  -t  ashutest:v001  -f  dynamic.dockerfile  .  
+
+  416  docker build  -t  ashutest:v001  -f  dynamic.dockerfile --no-cache  .  
+ 
+  418  docker build  --build-arg x=ftp    -t  ashutest:v001      -f  dynamic.dockerfile   .  
+  
+  ```
+  
+ ## arg and evn together 
+ ```
+ FROM centos
+ARG  x=httpd
+ENV z=$x
+#  here x is a variable and httpd  is value 
+# during  image build  time  we can replace value of x without changing into  dockerfile 
+RUN  yum  install   $z  -y
+~                             
+```
+
+## image build 
+```
+ 435  docker build  --build-arg x=ftp    -t  ashutest:v001      -f  dynamic.dockerfile   . 
+  436  docker run -it --rm  ashutest:v001  env
+```
+
+
+  
+  
+  
+  '
+  
+  
+  
+
+ 
