@@ -420,8 +420,140 @@ docker  build  -t   flask:ashuv1   --no-cache .
 docker  run -d  --name ashux12  -p  1212:5000  flask:ashuv1  
 ```
 
-  
-  '
+## Docker networking 
+
+### list of default bridges 
+```
+[ec2-user@ip-172-31-74-156 ~]$ docker network  ls 
+NETWORK ID          NAME                DRIVER              SCOPE
+6579e1b9ffc8        bridge              bridge              local
+1d7d1f7cc0b1        host                host                local
+ea8023eab823        none                null                local
+
+```
+
+### few more commands
+```
+ 611  docker  network  ls
+  612  docker network  inspect  bridge 
+  613  docker run  -d  -name c1  alpine  ping fb.com 
+  614  docker run  -d  --name c1  alpine  ping fb.com 
+  615  docker  ps
+  616  docker network  inspect  bridge 
+  617  history 
+  618  docker network  inspect  bridge 
+  619  docker run  -d  --name c2  alpine  ping fb.com 
+  620  docker  ps
+  621  docker network  inspect  bridge 
+```
+
+### container with None Bridge
+```
+docker  run  -it  --rm   --network none  alpine  sh
+```
+
+### container with host network 
+```
+  628  docker  run  -it  --rm  --network  host centos  bash 
+  629  docker  run  -it  --rm  --network  host  alpine  sh 
+```
+
+### creating bridge 
+```
+docker  network  create  ashubr1  
+ec2-user@ip-172-31-74-156 ~]$ docker  network  inspect ashubr1 
+[
+    {
+        "Name": "ashubr1",
+        "Id": "cb08a5df10ee65e388398c73647ddbeb1b1cdd155faf31515218f5752fe59d58",
+        "Created": "2020-07-29T04:50:34.976243973Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {},
+        "Options": {},
+        "Labels": {}
+    }
+]
+
+```
+
+### check number of container connect to a bridge
+```
+[ec2-user@ip-172-31-74-156 ~]$ docker  network  inspect  ashubr1 
+[
+    {
+        "Name": "ashubr1",
+        "Id": "cb08a5df10ee65e388398c73647ddbeb1b1cdd155faf31515218f5752fe59d58",
+        "Created": "2020-07-29T04:50:34.976243973Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "5905a83a37ed7aa08be6d6268561129a153128560e3f027e4a46f3b6ea60bd71": {
+                "Name": "ashuc22",
+                "EndpointID": "c14eae2be7632082f3d24120d0a1bf86c1919cd5b053e2d86efc74d20752fafa",
+                "MacAddress": "02:42:ac:12:00:03",
+                "IPv4Address": "172.18.0.3/16",
+                "IPv6Address": ""
+            },
+            "e5b3330c22d669347a805229e1dc7e4cfd1d547d94fb51125956bce93baba94e": {
+                "Name": "ashuc11",
+                "EndpointID": "15311c0bd85bec4ca643062413eac3043719a872906bc131e73613062f03dc09",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+]
+
+```
+### container with static ip
+```
+ 647  docker  network   create  ashubr2  --subnet  192.168.1.0/24  
+  648  docker  network   ls  
+  649  docker run  -it  --rm  --network  ashubr2  alpine 
+  650  docker run  -it  --rm  --network  ashubr2   --ip 192.168.1.100   alpine 
+
+```
+
   
   
   
