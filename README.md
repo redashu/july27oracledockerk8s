@@ -554,7 +554,86 @@ ec2-user@ip-172-31-74-156 ~]$ docker  network  inspect ashubr1
 
 ```
 
+## Docker Volumes 
+
+### creating volumes 
+```
+docker  volume   create   ashuvol1 
+ec2-user@ip-172-31-74-156 ~]$ docker  volume  ls
+DRIVER              VOLUME NAME
+local               ashuvol1
+local               rvvol1
+local               sowV1
+local               sureshvol1
+
+---
+[ec2-user@ip-172-31-74-156 ~]$ docker volume  inspect ashuvol1 
+[
+    {
+        "CreatedAt": "2020-07-29T05:28:38Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/mnt/mydocker/volumes/ashuvol1/_data",
+        "Name": "ashuvol1",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+
+```
+
+### container with volume 
+```
+[ec2-user@ip-172-31-74-156 ~]$ docker  run  -it  --name  ashuc2  -v   ashuvol1:/root/ok  alpine  sh 
+/ # 
+/ # 
+/ # ls
+bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var
+/ # cd  /root
+~ # ls
+ok
+~ # cd  ok
+~/ok # ls
+~/ok # mkdir  any thing
+~/ok # ls
+any    thing
+~/ok # touch  a.txt  b.txt  
+~/ok # ls
+a.txt  any    b.txt  thing
+~/ok # exit
+[ec2-user@ip-172-31-74-156 ~]$ docker  rm  ashuc2
+ashuc2
+
+```
+
+### reusing volume
+```
+[ec2-user@ip-172-31-74-156 ~]$ docker  run  -it --name ashuc5  -v  ashuvol1:/opt/new  centos  bash 
+[root@d6993853e3d2 /]# 
+[root@d6993853e3d2 /]# 
+[root@d6993853e3d2 /]# cd  /opt/new/
+[root@d6993853e3d2 new]# ls
+a.txt  any  b.txt  thing
+
+```
+
+### a folder as a volume 
+```
+ docker  run  -d  --name  ashuweb1 -v /home/ec2-user/day3/htmlapp:/usr/share/nginx/html/ -p 1001:80 nginx
+ 
+ ```
+ 
+ ### file as volume 
+ ```
+  docker  run  -it --rm  -v   /etc/passwd:/ok.txt:ro  alpine  sh
+  ```
   
+ ### deploy portainer to manager docker engine via WebUI
+ ```
+  docker  run  -d  --name  webui -p 1998:9000 -v  /var/run/docker.sock:/var/run/docker.sock portainer/portainer
+ ```
+ 
+ 
   
   
 
