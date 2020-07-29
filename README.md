@@ -634,7 +634,118 @@ a.txt  any  b.txt  thing
  ```
  
  
-  
+## Docker compose 
+
+### installation 
+```
+  703  sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  704  sudo chmod  +x  /usr/local/bin/docker-compose 
+  705  docker-compose  -v
+
+```
+
+### compsoe example 1 
+```
+[ec2-user@ip-172-31-74-156 ashuapp1]$ cat  docker-compose.yml 
+version: "3.8"   # most stable version of compose file 
+services:
+ webapp1:  #  name of app
+  image: alpine   #  name of docker  image 
+  container_name: ashuxc011  #  name of  container 
+  command: ping fb.com 
+
+---
+716  docker-compose  up  
+  717  docker  network  ls
+  718  docker-compose  ps
+  719  docker-compose  start
+  720  docker-compose  ps
+  721  docker-compose  logs
+  722  history 
+  723  docker-compose  ps
+  724  docker-compose  kill
+  725  docker-compose  ps
+  726  docker-compose  start
+  727  docker-compose  ps
+  728  docker-compose   stop
+  729  docker-compose  ps
+  730  docker-compose   rm
+  731  docker-compose   up  -d
+  732  docker-compose  ps
+  733  docker-compose  down 
+
+
+```
+
+
+### compose example 2
+```
+[ec2-user@ip-172-31-74-156 ashuapp1]$ cat docker-compose.yml 
+version: "3.8"   # most stable version of compose file 
+services:
+ webapp1:  #  name of app
+  image: alpine   #  name of docker  image 
+  container_name: ashuxc011  #  name of  container 
+  command: ping fb.com   # CMD  operation 
+ webapp2:  #  second app
+  image: nginx
+  container_name: ashuxc22
+  ports:  #  way of writing an array in YAML 
+   - "6655:80"
+   
+   ====
+   740  docker-compose  up  -d
+  741  docker-compose  ps
+  742  docker-compose  kill 
+  743  docker-compose  start
+  744  docker-compose  ps
+  745  docker-compose  kill  webapp1 
+  746  docker-compose  rm   webapp1
+  747  docker-compose up  -d
+
+```
+
+### docker-compose with dockerfile
+```
+[ec2-user@ip-172-31-74-156 multapp]$ cat  docker-compose.yaml 
+version: '3.5'
+services:
+ ashuwebapp:
+  image: httpd:ashuv202011  #  image we want to build
+  build: .   # location of Dockerfile
+  container_name: ashuwebxc123  #  name of container we want to create
+  ports:
+   - "1090:80"
+
+```
+
+### docker compose with network and volume 
+```
+[ec2-user@ip-172-31-74-156 multapp]$ cat  docker-compose.yaml 
+version: '3.5'
+services:
+ ashuwebapp:
+  image: httpd:ashuv202011  #  image we want to build
+  build: .   # location of Dockerfile
+  container_name: ashuwebxc123  #  name of container we want to create
+  ports:
+   - "1090:80"
+  networks:
+   - ashubr9   # using  network that we created  below 
+  volumes:
+   - ashuvol9:/var/log/httpd   #  mounting volume to log directory 
+
+networks:  #  create network
+ ashubr9:  #  name of bridge 
+
+volumes:   #  creating  volumes 
+ ashuvol9:  # name of volume
+
+```
+
+
+
+
   
 
  
