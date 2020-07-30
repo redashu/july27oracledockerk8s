@@ -374,5 +374,52 @@ spec:
  1035  kubectl  get  po,svc
 
 ```
+# Replication COntroller 
+
+## example 1
+```
+[ec2-user@ip-172-31-74-156 rc]$ cat  ashu-rc1.yaml 
+apiVersion: v1
+kind: ReplicationController 
+metadata:
+ name: ashu-rc-web1  #  name of rc 
+spec:
+ replicas: 2   #  NO OF pods we want to deploy 
+ template:
+  metadata:
+   name: ashupod111   #  name of pod (optional field ) bcz rc will give a random name
+   labels:
+    x: ashuwebpod  #  labels of both the pods 
+  spec:
+   containers:
+   - name: ashuc1 
+     image: nginx
+     ports:
+     - containerPort: 80
+     
+     
+     kubectl apply -f  ashu-rc1.yaml 
+     kubectl  expose  rc  ashu-rc-web1  --type NodePort  --port 1244  --target-port  80  --name ashusvc111 
+     [ec2-user@ip-172-31-74-156 rc]$ kubectl  get  svc
+NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+arun-service1       NodePort    10.104.87.61     <none>        1729:30307/TCP   53s
+ashusvc111          NodePort    10.111.10.209    <none>        1244:30674/TCP   82s
+kubernetes          ClusterIP   10.96.0.1        <none>        443/TCP          27m
+pankaj-rc-service   NodePort    10.110.96.229    <none>        2356:30940/TCP   35s
+rvsvc5              NodePort    10.101.114.43    <none>        1300:30392/TCP   27s
+sachsvc007          NodePort    10.105.215.152   <none>        1255:30942/TCP   50s
+sowsvc68            NodePort    10.109.205.103   <none>        7654:31769/TCP   4s
+sri-rc1             NodePort    10.102.56.199    <none>        2999:31983/TCP   60s
+suresh-service-1    NodePort    10.103.98.85     <none>        8091:30008/TCP   5s
+
+
+
+```
+
+### increase replica
+```
+kubectl  scale  rc  ashu-rc-web1  --replicas=10 
+ kubectl  edit rc  ashu-rc-web1
+```
 
   
