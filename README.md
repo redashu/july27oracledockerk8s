@@ -421,5 +421,119 @@ suresh-service-1    NodePort    10.103.98.85     <none>        8091:30008/TCP   
 kubectl  scale  rc  ashu-rc-web1  --replicas=10 
  kubectl  edit rc  ashu-rc-web1
 ```
+# Deployment 
 
+```
+ kubectl create deployment  ashu-dep1  --image=dockerashu/multiapp:ashuv1july282020  --dry-run=client   -o yaml 
+ 
+ OR
+ 
+  kubectl create deployment  ashu-dep1  --image=dockerashu/multiapp:ashuv1july282020  --dry-run=client   -o yaml          >ashudep-svc.yaml 
+  kubectl  create  service  nodeport  ashudep-svc1 --tcp 1212:80 --dry-run=client -o yaml  >>ashudep-svc.yaml    
+[ec2-user@ip-172-31-74-156 deployment]$ kubectl  apply -f  ashudep-svc.yaml 
+deployment.apps/ashu-dep1 created
+service/ashudep-svc1 created
   
+```
+
+### listing 
+```
+[ec2-user@ip-172-31-74-156 deployment]$ kubectl  get  deployment 
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+arun-dep1      1/1     1            1           33s
+ashu-dep1      1/1     1            1           30s
+bpn-dp         1/1     1            1           17s
+geeta-dep1     1/1     1            1           9s
+ja-dep         0/1     1            0           21s
+pankaj-dp1     1/1     1            1           45s
+rv-dep1        1/1     1            1           15s
+sach-dep1      1/1     1            1           18s
+sow-dep1       2/2     2            2           22s
+sri-dep1       1/1     1            1           30s
+sudeployment   1/1     1            1           100s
+[ec2-user@ip-172-31-74-156 deployment]$ kubectl  get  rs
+NAME                      DESIRED   CURRENT   READY   AGE
+arun-dep1-68c9d585c8      1         1         1       39s
+ashu-dep1-57859fb4d9      1         1         1       36s
+bpn-dp-69467cfb99         1         1         1       23s
+geeta-dep1-6fd56749c4     1         1         1       15s
+ja-dep-7cd77d4b8          1         1         0       27s
+pankaj-dp1-58b55974f7     1         1         1       51s
+rv-dep1-f778b5c8b         1         1         1       21s
+sach-dep1-56d54b699c      1         1         1       24s
+sow-dep1-795c8cc5b8       2         2         2       28s
+sri-dep1-69d4b69f46       1         1         1       36s
+sudeployment-85fb7cc9cd   1         1         1       106s
+[ec2-user@ip-172-31-74-156 deployment]$ kubectl  get  po
+NAME                            READY   STATUS             RESTARTS   AGE
+arun-dep1-68c9d585c8-5xzvs      1/1     Running            0          44s
+ashu-dep1-57859fb4d9-8dv4m      1/1     Running            0          41s
+bpn-dp-69467cfb99-8jc74         1/1     Running            0          28s
+geeta-dep1-6fd56749c4-8ts7t     1/1     Running            0          20s
+ja-dep-7cd77d4b8-dxmj4          0/1     ImagePullBackOff   0          32s
+pankaj-dp1-58b55974f7-ztpzw     1/1     Running            0          56s
+rv-dep1-f778b5c8b-5bmmv         1/1     Running            0          26s
+sach-dep1-56d54b699c-qkqsw      1/1     Running            0          29s
+sow-dep1-795c8cc5b8-lpp22       1/1     Running            0          33s
+sow-dep1-795c8cc5b8-z9dxh       1/1     Running            0          33s
+sri-dep1-69d4b69f46-bw4b2       1/1     Running            0          41s
+sudeployment-85fb7cc9cd-6lmqx   1/1     Running            0          111s
+
+```
+### all listing 
+```
+[ec2-user@ip-172-31-74-156 deployment]$ kubectl  get  deploy,rs,po,svc
+NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/arun-dep1      1/1     1            1           94s
+deployment.apps/ashu-dep1      1/1     1            1           91s
+deployment.apps/bpn-dp         1/1     1            1           78s
+deployment.apps/geeta-dep1     1/1     1            1           70s
+deployment.apps/ja-dep         0/1     1            0           82s
+deployment.apps/pankaj-dp1     1/1     1            1           106s
+deployment.apps/rv-dep1        1/1     1            1           76s
+deployment.apps/sach-dep1      1/1     1            1           79s
+deployment.apps/sow-dep1       2/2     2            2           83s
+deployment.apps/sri-dep1       1/1     1            1           91s
+deployment.apps/sudeployment   1/1     1            1           2m41s
+
+NAME                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/arun-dep1-68c9d585c8      1         1         1       94s
+replicaset.apps/ashu-dep1-57859fb4d9      1         1         1       91s
+replicaset.apps/bpn-dp-69467cfb99         1         1         1       78s
+replicaset.apps/geeta-dep1-6fd56749c4     1         1         1       70s
+replicaset.apps/ja-dep-7cd77d4b8          1         1         0       82s
+replicaset.apps/pankaj-dp1-58b55974f7     1         1         1       106s
+replicaset.apps/rv-dep1-f778b5c8b         1         1         1       76s
+replicaset.apps/sach-dep1-56d54b699c      1         1         1       79s
+replicaset.apps/sow-dep1-795c8cc5b8       2         2         2       83s
+replicaset.apps/sri-dep1-69d4b69f46       1         1         1       91s
+replicaset.apps/sudeployment-85fb7cc9cd   1         1         1       2m41s
+
+NAME                                READY   STATUS             RESTARTS   AGE
+pod/arun-dep1-68c9d585c8-5xzvs      1/1     Running            0          94s
+pod/ashu-dep1-57859fb4d9-8dv4m      1/1     Running            0          91s
+pod/bpn-dp-69467cfb99-8jc74         1/1     Running            0          78s
+pod/geeta-dep1-6fd56749c4-8ts7t     1/1     Running            0          70s
+pod/ja-dep-7cd77d4b8-dxmj4          0/1     ImagePullBackOff   0          82s
+pod/pankaj-dp1-58b55974f7-ztpzw     1/1     Running            0          106s
+pod/rv-dep1-f778b5c8b-5bmmv         1/1     Running            0          76s
+pod/sach-dep1-56d54b699c-qkqsw      1/1     Running            0          79s
+pod/sow-dep1-795c8cc5b8-lpp22       1/1     Running            0          83s
+pod/sow-dep1-795c8cc5b8-z9dxh       1/1     Running            0          83s
+pod/sri-dep1-69d4b69f46-bw4b2       1/1     Running            0          91s
+pod/sudeployment-85fb7cc9cd-6lmqx   1/1     Running            0          2m41s
+
+NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/arun-svc1        NodePort    10.97.124.228    <none>        1729:30958/TCP   94s
+service/ashudep-svc1     NodePort    10.98.73.89      <none>        1212:30907/TCP   91s
+service/bipin-svc        NodePort    10.102.9.190     <none>        1234:32254/TCP   77s
+service/geetadepl-svc1   NodePort    10.108.135.32    <none>        1217:32740/TCP   70s
+service/ja-dep-svc1      NodePort    10.104.238.148   <none>        1111:30226/TCP   82s
+service/kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP          50m
+service/pankaj-dep-sv1   NodePort    10.101.183.127   <none>        4564:31597/TCP   106s
+service/rvdep-svc1       NodePort    10.101.178.230   <none>        1214:30154/TCP   76s
+service/sachdep-svc1     NodePort    10.107.186.73    <none>        1244:32025/TCP   79s
+service/sow-dep-svc      NodePort    10.103.150.98    <none>        5645:30389/TCP   83s
+service/sri-svc1         NodePort    10.106.249.13    <none>        3999:31213/TCP   91s
+
+```
