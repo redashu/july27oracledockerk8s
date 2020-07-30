@@ -141,3 +141,94 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
   
   ```
   
+  # Pods 
+  
+  ## creating nginx based pod
+  ```
+  [ec2-user@ip-172-31-74-156 pods]$ cat  ashupod1.yml 
+apiVersion: v1  # apiver server version of k8s master
+kind: Pod  #  requsting pod to deploy 
+metadata:  #  info about pod
+ name: ashu-pod1   #  name of pod 
+spec:  # here we right about application specifications
+ containers:
+ - image: nginx  # this image will be pull from Docker hub only 
+   name: ashuc1  #  name of container  optional 
+   ports:  #  this is completely optional field 
+   - containerPort: 80  #  same as we defined in Dockerfile under expose instruction
+   
+ =====
+ 
+  kubectl apply  -f  ashupod1.yml 
+  
+  ====
+   928  kubectl  get  pod
+  929  kubectl  get  pod -o wide 
+  
+  ```
+  
+  ### Pod operations 
+  ```
+   kubectl  describe  pod  ashu-pod1 
+   
+   ```
+   
+   ### access pod using exec
+   ```
+   [ec2-user@ip-172-31-74-156 pods]$ kubectl  exec  -it  ashu-pod1  bash 
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+root@ashu-pod1:/# 
+root@ashu-pod1:/# 
+root@ashu-pod1:/# uname 
+Linux
+root@ashu-pod1:/# uname  -r
+4.14.181-140.257.amzn2.x86_64
+root@ashu-pod1:/# cat  /etc/os-release 
+PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+NAME="Debian GNU/Linux"
+VERSION_ID="10"
+VERSION="10 (buster)"
+VERSION_CODENAME=buster
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+
+```
+
+### taking help from kubectl 
+```
+  943  kubectl  explain  pods 
+  944  kubectl  explain  pods.apiVersion 
+  945  kubectl  explain  pods.kind
+  946  kubectl  explain  pods.spec
+  947  kubectl  explain  pods.spec.containers
+
+```
+
+### deleting pods
+```
+  950  kubectl  delete pods  ashu-pod1  
+  951  kubectl get  po 
+  952  kubectl delete  pods  --all
+```
+### generating yaml and json files 
+```
+ 957  kubectl  run ashupod2 --image=nginx  
+  958  kubectl get  po
+  959  kubectl delete pods  --all 
+  960  kubectl  run ashupod2 --image=nginx   --dry-run
+  961  kubectl  run ashupod2 --image=nginx   --dry-run=client 
+  962  kubectl get  po
+  963  kubectl  run ashupod2 --image=nginx   --dry-run=client -o yaml
+  964  kubectl  run ashupod2 --image=nginx   --dry-run=client -o json 
+  965  history 
+  966  kubectl  run ashupod2 --image=nginx   --dry-run=client -o yaml >ashupod2.yml 
+  967  kubectl  run ashupod2 --image=nginx   --dry-run=client -o json  >ashupod2.json 
+  968  ls
+  969  cat  ashupod2.
+  970  cat  ashupod2.yml 
+  971  kubectl  run ashupod2 --image=nginx --port 80   --dry-run=client -o yaml 
+```
+
+
