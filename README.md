@@ -232,3 +232,147 @@ BUG_REPORT_URL="https://bugs.debian.org/"
 ```
 
 
+## pods with labels
+```
+[ec2-user@ip-172-31-74-156 pods]$ cat  ashupod1.yml 
+apiVersion: v1  # apiver server version of k8s master
+kind: Pod  #  requsting pod to deploy 
+metadata:  #  info about pod
+ name: ashu-pod1   #  name of pod 
+ labels:  #  defining  label is must if we want to access application 
+  x: ashuapp1   #  key and value format 
+spec:  # here we right about application specifications
+ containers:
+ - image: nginx  # this image will be pull from Docker hub only 
+   name: ashuc1  #  name of container  optional 
+   ports:  #  this is completely optional field 
+   - containerPort: 80  #  same as we defined in Dockerfile under expose instruction 
+   
+  ```
+  
+  ### checking labels
+  ```
+    993  kubectl  get  po  --show-labels
+  994  kubectl  get  po ashu-pod1   --show-labels
+  995  kubectl  get  po ashu-pod1 -o wide   --show-labels
+  996  kubectl  get  po  -o wide   --show-labels
+  
+  ```
+  
+  ## service. creation
+  
+  ### NodePort 
+  ```
+  [ec2-user@ip-172-31-74-156 pods]$ cat  ashuservice1.yml 
+apiVersion: v1
+kind: Service
+metadata:
+ name: ashu-service-1   #  name of service 
+
+spec:
+ ports:
+ - name: myport  #  optional field 
+   port: 1234  #  this  is service port number this field is must 
+   protocol: TCP  #  optional field 
+   targetPort: 80  #  this port number must same as POd port where you app is running (optional field)
+ selector:  #  this is search for labels of pod 
+  x: ashuapp1  #  this label must match your respected  POD 
+ type: NodePort   #  type  of  service  we want to create 
+ 
+ ```
+ 
+ ### serivce create automatically
+ ```
+  1018  kubectl  create  service   nodeport  ashusvc2 --tcp  1239:80 --dry-run=client 
+ 1019  kubectl  create  service   nodeport  ashusvc2 --tcp  1239:80 --dry-run=client -o yaml
+ 1020  kubectl  create  service   nodeport  ashusvc2 --tcp  1239:80 --dry-run=client -o json
+ 1021  kubectl  create  service   nodeport  ashusvc2 --tcp  1239:80 --dry-run=client -o yaml
+ 1022  kubectl  create  service   nodeport  ashusvc2 --tcp  1239:80 --dry-run=client -o yaml >ashusvc2.yml 
+ ```
+ 
+  ### expose pod to create service
+  ```
+   1008  kubectl  get   po  
+ 1009  kubectl  expose  pod  ashu-pod1  --type NodePort --port 1290  --target-port 80 --name ashusvc3  --dry-run=client  -o yaml 
+ 1010  kubectl  expose  pod  ashu-pod1  --type NodePort --port 1290  --target-port 80 --name ashusvc3  
+ 
+ ---
+ [ec2-user@ip-172-31-74-156 pods]$ kubectl  get  svc
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+arun-service1     NodePort    10.109.70.32     <none>        1729:31241/TCP   13m
+ashusvc2          NodePort    10.107.0.236     <none>        1239:32016/TCP   13m
+ashusvc3          NodePort    10.108.137.46    <none>        1290:30528/TCP   48s
+bipin-service     NodePort    10.101.225.3     <none>        1234:30119/TCP   12m
+geetaservice2     NodePort    10.97.94.233     <none>        1237:30215/TCP   10m
+janani1           NodePort    10.97.127.182    <none>        9000:30471/TCP   11m
+kubernetes        ClusterIP   10.96.0.1        <none>        443/TCP          19m
+pankajs2          NodePort    10.111.9.171     <none>        8043:30902/TCP   13m
+rvsvc2            NodePort    10.101.163.183   <none>        1240:30196/TCP   11m
+sach-service-2    NodePort    10.111.122.78    <none>        1454:31839/TCP   18m
+sach-service2     ClusterIP   10.110.47.7      <none>        1444/TCP         3m5s
+sowsvc2           NodePort    10.108.27.134    <none>        5432:30783/TCP   13m
+sowsvc3           NodePort    10.103.86.97     <none>        7654:31997/TCP   38s
+sri-svc-3         NodePort    10.100.71.245    <none>        1600:30605/TCP   12m
+sureshservice12   NodePort    10.100.8.143     <none>        8091:31896/TCP   13m
+
+ ```
+
+## tricks
+```
+ 1017  kubectl  get  po,svc
+ 1018  kubectl delete  all  --all 
+ ```
+ 
+## pod + service in single YAML
+```
+ 1022  kubectl  run  ashu-pod5  --image=dockerashu/multiapp:ashuv1july282020 --port 80 --dry-run=client  -o yaml  
+ 1023  kubectl  run  ashu-pod5  --image=dockerashu/multiapp:ashuv1july282020 --port 80 --dry-run=client  -o yaml   >ashupod-svc.yml 
+ kubectl  create  service  nodeport  ashusvc5  --tcp 9090:80 --dry-run=client -o yaml  >>ashupod-svc.yml
+ 
+ ====
+ [ec2-user@ip-172-31-74-156 pods]$ cat ashupod-svc.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:  # label of pods 
+    run: ashu-pod5   #  labels 
+  name: ashu-pod5  # name of  the pod 
+spec:
+  containers:
+  - image: dockerashu/multiapp:ashuv1july282020  # docker  image  from docker hub 
+    name: ashu-pod5  #  name of  container 
+    ports:
+    - containerPort: 80  #  application port writter in Dockerfile under expose instruction 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:  # optional 
+    app: ashusvc5
+  name: ashusvc5  # name of  service 
+spec:
+  ports:
+  - name: 9090-80
+    port: 9090  #  service port 
+    protocol: TCP
+    targetPort: 80  #  pod port 
+  selector:
+   run: ashu-pod5  #  mathching exact  same label of  PODs 
+  type: NodePort  #  type  of  service  run: ashu-pod5
+  
+  ===
+  
+   kubectl  apply -f  ashupod-svc.yml  
+ 1035  kubectl  get  po,svc
+
+```
+
+  
