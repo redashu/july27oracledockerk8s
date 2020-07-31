@@ -537,3 +537,165 @@ service/sow-dep-svc      NodePort    10.103.150.98    <none>        5645:30389/T
 service/sri-svc1         NodePort    10.106.249.13    <none>        3999:31213/TCP   91s
 
 ```
+
+# Namespce 
+
+## default namesapce
+```
+[ec2-user@ip-172-31-74-156 ~]$ kubectl  get ns 
+NAME              STATUS   AGE
+default           Active   41h
+kube-node-lease   Active   41h
+kube-public       Active   41h
+kube-system       Active   41h
+
+```
+
+## auto completion in linux client 
+```
+cat ~/.bashrc 
+source  <(kubectl  completion bash)
+
+====
+source  ~/.bashrc
+
+```
+
+## auto completion in Mac
+```
+ashutoshhs-MacBook-Air:~ fire$ cat  /etc/profile 
+# System-wide .profile for sh(1)
+
+if [ -x /usr/libexec/path_helper ]; then
+	eval `/usr/libexec/path_helper -s`
+fi
+
+if [ "${BASH-no}" != "no" ]; then
+	[ -r /etc/bashrc ] && . /etc/bashrc
+fi
+source ~/.kube/kubectl_autocompletion
+
+```
+## note :  download kubectl_autocompletion file from internet 
+
+## custom namespace 
+```
+  kubectl  create  namespace  ashu-space 
+   kubectl  create deployment  ashu-dep2  --image=dockerashu/multiapp:ashuv1july282020  -n ashu-space 
+  ===
+  [ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deployments.apps  -n ashu-space 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+ashu-dep2   1/1     1            1           47s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deployments  -n ashu-space 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+ashu-dep2   1/1     1            1           57s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deployment  -n ashu-space 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+ashu-dep2   1/1     1            1           61s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deploy -n ashu-space 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+ashu-dep2   1/1     1            1           67s
+
+====
+
+ kubectl expose deployment  ashu-dep2 --type  LoadBalancer  --port 1234 --target-port 80 --name ashus1 -n ashu-space
+ 
+ 
+ ```
+ ### view deployment 
+ ```
+ [ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deploy,rs,pod,svc  -n ashu-space 
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ashu-dep2   1/1     1            1           6m25s
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/ashu-dep2-6f5b45647d   1         1         1       6m25s
+
+NAME                             READY   STATUS    RESTARTS   AGE
+pod/ashu-dep2-6f5b45647d-2pz9d   1/1     Running   0          6m25s
+
+NAME             TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/ashus1   LoadBalancer   10.97.104.249   <pending>     1234:30641/TCP   3m31s
+```
+
+## updating image in deployment
+```
+[ec2-user@ip-172-31-74-156 multapp]$ kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+Name:                   ashu-dep2
+Namespace:              ashu-space
+CreationTimestamp:      Fri, 31 Jul 2020 05:03:24 +0000
+Labels:                 app=ashu-dep2
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=ashu-dep2
+Replicas:               5 desired | 5 updated | 5 total | 5 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=ashu-dep2
+  Containers:
+   multiapp:
+    Image:        dockerashu/multiapp:ashuv1july282020
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Progressing    True    NewReplicaSetAvailable
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   ashu-dep2-6f5b45647d (5/5 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  17m    deployment-controller  Scaled up replica set ashu-dep2-6f5b45647d to 1
+  Normal  ScalingReplicaSet  8m29s  deployment-controller  Scaled up replica set ashu-dep2-6f5b45647d to 5
+  
+  ====
+ kubectl  set  image deployment  ashu-dep2  multiapp=dockerashu/multiapp:ashuv1july282020v002 -n ashu-space 
+ 
+  1091   kubectl  set  image deployment  ashu-dep2  multiapp=dockerashu/multiapp:ashuv1july282020v003 -n ashu-space 
+ 1092  history 
+ 1093  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+ 
+ ```
+ 
+ ## rollback now
+ ```
+ [ec2-user@ip-172-31-74-156 multapp]$ kubectl  rollout history deployment  ashu-dep2 -n ashu-space 
+deployment.apps/ashu-dep2 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+3         <none>
+
+
+===
+
+[ec2-user@ip-172-31-74-156 multapp]$ kubectl rollout undo deployment  ashu-dep2 -n ashu-space 
+deployment.apps/ashu-dep2 rolled back
+[ec2-user@ip-172-31-74-156 multapp]$ kubectl  rollout status deployment  ashu-dep2 -n ashu-space 
+deployment "ashu-dep2" successfully rolled out
+[ec2-user@ip-172-31-74-156 multapp]$ 
+
+
+====
+
+ 1091   kubectl  set  image deployment  ashu-dep2  multiapp=dockerashu/multiapp:ashuv1july282020v003 -n ashu-space 
+ 1092  history 
+ 1093  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+ 1094  history 
+ 1095  kubectl  rollout history deployment  ashu-dep2 -n ashu-space 
+ 1096  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+ 1097  kubectl rollout undo deployment  ashu-dep2 -n ashu-space 
+ 1098  kubectl  rollout status deployment  ashu-dep2 -n ashu-space 
+ 1099  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+ 1100  kubectl  rollout history deployment  ashu-dep2 -n ashu-space 
+ 1101  kubectl rollout undo deployment  ashu-dep2   --to-revision=1   -n ashu-space 
+ 1102  kubectl  rollout status deployment  ashu-dep2 -n ashu-space 
+ 1103  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
+
+```
