@@ -1106,8 +1106,171 @@ clusterrolebinding.rbac.authorization.k8s.io/admin-user created
 
 
 ```
+# volumes in k8s
+
+## emptyDir
+
+```
+kubectl  run   ashupodemp  --image=alpine  --dry-run=client -o yaml     -n ashu-space  >lastpod.yml 
+
+====
+[ec2-user@ip-172-31-74-156 day5]$ cat  lastpod.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: ashupodemp
+  name: ashupodemp
+  namespace: ashu-space 
+spec:
+  containers:
+  - image: alpine
+    name: ashupodemp
+    command: ["/bin/sh","-c","ping fb.com"]  #  here command is the replacement of Entrypoint in docker
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+[ec2-user@ip-172-31-74-156 day5]$ 
+
+====
+
+[ec2-user@ip-172-31-74-156 day5]$ cat  lastpod.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: ashupodemp
+  name: ashupodemp
+  namespace: ashu-space 
+spec:
+  volumes:  #  for creating  a volume 
+  - name: ashuvol1  #  name of volume 
+    emptyDir: {} # it will create a random folder with in the worker node where pod got scheduled 
+  containers:
+  - image: alpine
+    name: ashupodemp
+    command: ["/bin/sh","-c","while true;do date  >>/mnt/oracle/time.txt;sleep 10;done"]  # e replacement of Entrypoint in docker
+    volumeMounts: # for mounting the volume into the container 
+    - name: ashuvol1  #  using volume that got created above
+      mountPath: /mnt/oracle   #  in the container it will be mounted 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+=======
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  exec  -it ashupodemp  sh  -n ashu-space  
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+/ # 
+/ # 
+/ # cd  /mnt/oracle/
+/mnt/oracle # ls
+time.txt
+/mnt/oracle # cat time.txt 
+Fri Jul 31 11:14:01 UTC 2020
+Fri Jul 31 11:14:11 UTC 2020
+Fri Jul 31 11:14:21 UTC 2020
+Fri Jul 31 11:14:31 UTC 2020
+Fri Jul 31 11:14:41 UTC 2020
+Fri Jul 31 11:14:51 UTC 2020
+Fri Jul 31 11:15:01 UTC 2020
+Fri Jul 31 11:15:11 UTC 2020
+Fri Jul 31 11:15:21 UTC 2020
+Fri Jul 31 11:15:31 UTC 2020
 
 
 ```
+
+## hostpath volumes
+```
+[ec2-user@ip-172-31-74-156 day5]$ cat hostpath1.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: webpod
+  name: webpod
+  namespace: ashu-space
+spec:
+  nodeName: k8s-minion3  #  this manual scheduling  
+  volumes:
+  - name: ashuvol22  # vol1
+    hostPath:
+     path: /etc/passwd  # file from minion node 3
+     type: File 
+  - name: ashuvol33   #  vol 2
+    hostPath:
+     path: /usr   # directory from Minion 3 
+     type: Directory
+  containers:
+  - image: nginx
+    name: webpod
+    ports:
+    - containerPort: 80
+    volueMounts:
+    - name: ashuvol22 #  above created volume 
+      mountPath: /usr/share/nginx/html/index.html  #  mount file
+    - name: ashuvol33  #  volue name 
+      mountPath:  /mnt/oracledata # mountpath 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  
+  ====
+  
+  [ec2-user@ip-172-31-74-156 day5]$ kubectl  exec -it  webpod  bash  -n ashu-space 
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+root@webpod:/# 
+root@webpod:/# 
+root@webpod:/# cd  /usr/share/nginx/html/
+root@webpod:/usr/share/nginx/html# ls
+50x.html  index.html
+root@webpod:/usr/share/nginx/html# cd  /mnt/oracledata/
+root@webpod:/mnt/oracledata# ls
+bin  etc  games  include  lib  lib64  libexec  local  sbin  share  src	tmp
+
+
+```
+
+# image private registry 
+```
+ kubectl  create secret  docker-registry  ashuimgrg1  --docker-server=hub.docker.com  --docker-username=dockerashu  --docker-password=234234234sfdsf   -n ashu-space
+ 
+ ===
+ [ec2-user@ip-172-31-74-156 day5]$ cat lastpod.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: ashupodemp
+  name: ashupodemp
+  namespace: ashu-space 
+spec:
+  imagePullSecret:
+  - name: ashuimgrg1  # name of  secret 
+  volumes:  #  for creating  a volume 
+  - name: ashuvol1  #  name of volume 
+    emptyDir: {} # it will create a random folder with in the worker node where pod got scheduled 
+  containers:
+  - image: alpine
+    name: ashupodemp
+    command: ["/bin/sh","-c","while true;do date  >>/mnt/oracle/time.txt;sleep 10;done"]  # e replacement of Entrypoint in docker
+    volumeMounts: # for mounting the volume into the container 
+    - name: ashuvol1  #  using volume that got created above
+      mountPath: /mnt/oracle   #  in the container it will be mounted 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+
+
+====
+# Done 
+
+
 
 
