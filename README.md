@@ -699,3 +699,415 @@ deployment "ashu-dep2" successfully rolled out
  1103  kubectl  describe  deployments.apps ashu-dep2  -n ashu-space 
 
 ```
+
+# Tips 
+
+## changin namespace permanently 
+
+```
+ kubectl config set-context   $(kubectl  config  current-context)   --namespace=ashu-space
+ 
+ ```
+ 
+ 
+ # ENV in Kubernetes 
+ 
+ ## env in k8s
+ 
+ ```
+ kubectl  run  ashupod-day5  --image=dockerashu/multiapp:ashuv1july282020 --port 80 --dry-run=client -o yaml
+ 
+ ===
+ [ec2-user@ip-172-31-74-156 day5]$ cat  envpod.yml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: ashupod-day5
+  name: ashupod-day5
+  namespace: ashu-space  #  name of namespace 
+spec:
+  containers:
+  - image: dockerashu/multiapp:ashuv1july282020
+    name: ashupod-day5
+    ports:
+    - containerPort: 80
+    env: # defining  env variable
+    - name: web   #  this variable is same as env var in Dockerfile
+      value: app2  #  appliction 2 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+
+===
+kubectl  expose  pod ashupod-day5  --type LoadBalancer  --port 1231 --target-port 80 -n ashu-space 
+
+```
+
+## api-resources
+```
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  api-resources 
+NAME                              SHORTNAMES   APIGROUP                       NAMESPACED   KIND
+bindings                                                                      true         Binding
+componentstatuses                 cs                                          false        ComponentStatus
+configmaps                        cm                                          true         ConfigMap
+endpoints                         ep                                          true         Endpoints
+events                            ev                                          true         Event
+limitranges                       limits                                      true         LimitRange
+namespaces                        ns                                          false        Namespace
+nodes                             no                                          false        Node
+persistentvolumeclaims            pvc                                         true         PersistentVolumeClaim
+
+```
+
+# configuMAp
+```
+ 1151  kubectl  create  configmap  ashucm1  --from-literal  x=app3   -n ashu-space  --dry-run=client -o yaml
+ 1152  kubectl  create  configmap  ashucm1  --from-literal  x=app3   -n ashu-space  --dry-run=client -o yaml >ashucombo.yml 
+ 1153  history 
+ 1154  kubectl  create  configmap  ashucm1  --from-literal  x=app3 --from-literal y=app2   -n ashu-space  --dry-run=client -o yaml >ashucombo.yml 
+
+=== deployment
+kubectl create deployment  ashu-dep6  --image=dockerashu/multiapp:ashuv1july282020 -n ashu-space  --dry-run=client  -o yaml  >>ashucombo.yml
+
+kubectl  create service nodeport  ashusvc6 --tcp 1244:80 --dry-run=client -o yaml >>ashucombo.yml
+
+```
+
+### combo
+```
+[ec2-user@ip-172-31-74-156 day5]$ cat ashucombo.yml 
+apiVersion: v1
+data:
+ x: app3
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: ashucm1 # name of the configMap 
+  namespace: ashu-space  # name  of  namespace 
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  #
+  creationTimestamp: null
+  labels:
+    app: ashu-dep6
+  name: ashu-dep6 # name deployment 
+  namespace: ashu-space   #  namespace  info 
+spec:
+  replicas: 1 # only one pod will be deployed 
+  selector:
+    matchLabels:
+      app: ashu-dep6
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ashu-dep6   # label of pods 
+    spec:
+      containers:
+      - image: dockerashu/multiapp:ashuv1july282020 # image
+        name: multiapp  # name of container 
+        env: # defining  env  variables
+        - name: web  #  this variable name sam as ENV var in Dockerfile 
+          valueFrom: #  taking value from other palce
+           configMapKeyRef: # pointing  to configMap 
+            name: ashucm1  #  name of configMap 
+            key: x  #  key of configMap 
+        resources: {}
+status: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: ashusvc6
+  name: ashusvc6  #  name of service 
+  namespace: ashu-space #  namespace  info  
+spec:
+  ports:
+  - name: 1244-80
+    port: 1244
+    protocol: TCP
+    targetPort: 80
+  selector:
+   app: ashu-dep6    # matched  labels of pod 
+  type: NodePort
+status:
+  loadBalancer: {}
+
+
+---
+kubectl  apply  -f ashucombo.yml 
+[ec2-user@ip-172-31-74-156 day5]$ kubectl get cm,deploy,svc -n ashu-space 
+NAME                DATA   AGE
+configmap/ashucm1   1      4m54s
+
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ashu-dep6   1/1     1            1           113s
+
+NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/ashusvc6   NodePort   10.106.152.224   <none>        1244:31552/TCP   113s
+
+```
+
+# Db mysql deployment in k8s
+
+```
+kubectl  create   deployment   ashudb --image=mysql -n ashu-space  --dry-run=client -o yaml >ashu-db.yml
+kubectl  create secret generic ashudbinfo --from-literal slqpass=Oracle011  -n ashu-space 
+
+===
+[ec2-user@ip-172-31-74-156 day5]$ vim  ashu-db.yml 
+[ec2-user@ip-172-31-74-156 day5]$ cat  ashu-db.yml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: ashudb
+  name: ashudb
+  namespace: ashu-space
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ashudb
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ashudb
+    spec:
+      containers:
+      - image: mysql
+        name: mysql
+        env: 
+        - name: MYSQL_ROOT_PASSWORD  #  env variable already present in Dockerfile of mysql image
+          valueFrom:
+           secretKeyRef:
+            name: ashudbinfo #  name of secret
+            key: slqpass  #  key of secret 
+        resources: {}
+status: {}
+
+===
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deployments.apps  -n ashu-space 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+ashu-dep6   1/1     1            1           105m
+ashudb      1/1     1            1           3m58s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  pods  -n ashu-space 
+NAME                         READY   STATUS    RESTARTS   AGE
+ashu-dep6-58c4b569d9-6hpmn   1/1     Running   0          105m
+ashudb-66f7b76bb-wsk5v       1/1     Running   0          4m6s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  logs  ashudb-66f7b76bb-wsk5v   -n ashu-space 
+
+
+
+===
+
+kubectl  expose   deployment  ashudb --type NodePort --port 1230 --target-port 3306 --name ashudbsvc -n ashu-space 
+
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  exec  -it ashudb-66f7b76bb-wsk5v bash -n ashu-space 
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+root@ashudb-66f7b76bb-wsk5v:/# 
+root@ashudb-66f7b76bb-wsk5v:/# 
+root@ashudb-66f7b76bb-wsk5v:/# 
+root@ashudb-66f7b76bb-wsk5v:/# cat /etc/os-release 
+PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+NAME="Debian GNU/Linux"
+VERSION_ID="10"
+VERSION="10 (buster)"
+VERSION_CODENAME=buster
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+root@ashudb-66f7b76bb-wsk5v:/# mysql  -u  root  -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.21 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+
+```
+
+# Dashboard Deployment 
+## service account 
+
+```
+[ec2-user@ip-172-31-74-156 day5]$ kubectl   get  serviceaccounts   -n ashu-space 
+NAME      SECRETS   AGE
+default   1         5h1m
+
+```
+## service account token
+```
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get secrets  -n ashu-space 
+NAME                  TYPE                                  DATA   AGE
+ashudbinfo            Opaque                                1      53m
+default-token-5nbp8   kubernetes.io/service-account-token   3      5h3m
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  describe  secrets default-token-5nbp8  -n ashu-space 
+Name:         default-token-5nbp8
+Namespace:    ashu-space
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: default
+              kubernetes.io/service-account.uid: ba19aa72-e2c2-4276-a8af-b93d79e18ed0
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  10 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkppbHluRElpU1VtZDc5QkRkSmRJLUdkaF9Cd2ZWMm9MaTMta3hNdFRsNGcifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhc2h1LXNwYWNlIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tNW5icDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImJhMTlhYTcyLWUyYzItNDI3Ni1hOGFmLWI5M2Q3OWUxOGVkMCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDphc2h1LXNwYWNlOmRlZmF1bHQifQ.ZnD61jxoTuBlSZW0J48sjbC7BxA-4MO1YMa2KpFhl0ayoqsezujX7IwVHrNGQU4fThnxzEn9xn3e0bsFvOW9uRhxE2HE2P_w-tUfQOGymWO2SNNyvZ2aDgSTFZgSqvv6By0XRK1V5Pee10gUchw2cnUWUpGd60CY28WE5PJjybvLkmB6naDbGKAuzsOOjVI1LJXX5bliywtdFjY9-abklkjFtCwZPwYeud9nUHaBF1RpyUaJqahShFKYLKy8WsTh7yUbmi155IH-7c9bjzJcV2W_erVhjuH79p8v0-Q-6aS8vrHSmBETTOr8uTTCEFqywQ_HEz39_p5Zra4dO5HQbw
+
+```
+
+## installing dashboard
+```
+[ec2-user@ip-172-31-74-156 day5]$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+
+========
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get   ns
+NAME                   STATUS   AGE
+arun-ns                Active   5h8m
+ashu-space             Active   5h10m
+bpn-ns                 Active   5h15m
+default                Active   46h
+geeta-k8s-space        Active   5h9m
+janani                 Active   5h14m
+kube-node-lease        Active   46h
+kube-public            Active   46h
+kube-system            Active   46h
+kubernetes-dashboard   Active   92s
+pankaj-ns              Active   5h10m
+
+====
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  deploy  -n  kubernetes-dashboard 
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+dashboard-metrics-scraper   1/1     1            1           2m1s
+kubernetes-dashboard        1/1     1            1           2m1s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  po  -n  kubernetes-dashboard 
+NAME                                         READY   STATUS    RESTARTS   AGE
+dashboard-metrics-scraper-6b4884c9d5-zsn9z   1/1     Running   0          2m16s
+kubernetes-dashboard-7b544877d5-8z79b        1/1     Running   0          2m16s
+[ec2-user@ip-172-31-74-156 day5]$ 
+
+
+======
+
+
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  svc  -n  kubernetes-dashboard 
+NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+dashboard-metrics-scraper   ClusterIP   10.98.206.90     <none>        8000/TCP   2m41s
+kubernetes-dashboard        ClusterIP   10.105.102.197   <none>        443/TCP    2m41s
+
+
+====
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  sa  -n kubernetes-dashboard 
+NAME                   SECRETS   AGE
+default                1         3m
+kubernetes-dashboard   1         3m
+[ec2-user@ip-172-31-74-156 day5]$ 
+[ec2-user@ip-172-31-74-156 day5]$ 
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get secrets  -n kubernetes-dashboard 
+NAME                               TYPE                                  DATA   AGE
+default-token-gfw92                kubernetes.io/service-account-token   3      3m16s
+kubernetes-dashboard-certs         Opaque                                0      3m16s
+kubernetes-dashboard-csrf          Opaque                                1      3m16s
+kubernetes-dashboard-key-holder    Opaque                                2      3m16s
+kubernetes-dashboard-token-6tg8g   kubernetes.io/service-account-token   3      3m16s
+
+====
+
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  edit   svc kubernetes-dashboard   -n  kubernetes-dashboard 
+service/kubernetes-dashboard edited
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  get  svc  -n  kubernetes-dashboard 
+NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP   10.98.206.90     <none>        8000/TCP        4m36s
+kubernetes-dashboard        NodePort    10.105.102.197   <none>        443:32191/TCP   4m36s
+
+
+=====
+
+[ec2-user@ip-172-31-74-156 day5]$ kubectl get secrets  -n kubernetes-dashboard 
+NAME                               TYPE                                  DATA   AGE
+default-token-gfw92                kubernetes.io/service-account-token   3      9m17s
+kubernetes-dashboard-certs         Opaque                                0      9m17s
+kubernetes-dashboard-csrf          Opaque                                1      9m17s
+kubernetes-dashboard-key-holder    Opaque                                2      9m17s
+kubernetes-dashboard-token-6tg8g   kubernetes.io/service-account-token   3      9m17s
+[ec2-user@ip-172-31-74-156 day5]$ kubectl  describe  secrets  kubernetes-dashboard-token-6tg8g  -n kubernetes-dashboard 
+Name:         kubernetes-dashboard-token-6tg8g
+Namespace:    kubernetes-dashboard
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: kubernetes-dashboard
+              kubernetes.io/service-account.uid: 63cb12ad-6103-4ff0-97af-feac137161dd
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  20 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkppbHluRElpU1VtZDc5QkRkSmRJLUdkaF9Cd2ZWMm9MaTMta3hNdFRsNGcifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi02dGc4ZyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjYzY2IxMmFkLTYxMDMtNGZmMC05N2FmLWZlYWMxMzcxNjFkZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.UZNaiM9pl0adUfizn5HIBKtal3KHFX07Tdvl0EKMuuW-Cll0RPjVF6XlGRQX1FF4Lq8MAW1c8BuQgKXID21fFICYY_fZ7Njf3mZ1WUAjcbraS7HXfCROlnrEWszwqCY1AyV_HB3oQlelZgeOQ8Dvh0b5IJXMru-lDbTXoZHCyoUv2I7Mrkyb-3he6BTwiD5ZfPX4Hbkg8msdFdeIQkaV6F1oy3Qvih37Erb0Ey3mFlkMtDRvQrBAw_w7eFevPZvGYp-FTkMWGswzKqQG2GOCrHtFPq16FNyZ5ruFnFmxq7xZ08CPVYU5QpjzkJw_zJ-uyVjaVkPHTKtNz8Ll_oq27w
+
+
+```
+
+## clusterrole bind to kubernetes-dashboard svc account
+```
+[ec2-user@ip-172-31-74-156 day5]$ cat  clusterrolebind.yml 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  
+  ====
+  [ec2-user@ip-172-31-74-156 day5]$ kubectl apply  -f  clusterrolebind.yml 
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+
+
+```
+
+
+```
+
+
